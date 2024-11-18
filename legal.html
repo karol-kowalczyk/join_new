@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JOIN - Legal Notice</title>
+    <link rel="icon" type="image/x-icon" href="assets/img/favicon.ico">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="fonts.css">
+    <link rel="stylesheet" href="assets/css/summary.css">
+    <link rel="stylesheet" href="assets/css/contacts_page/contacts_responsive.css">
+    <link rel="stylesheet" href="assets/css/privacy.css">
+    <script src="./script.js" defer></script>
+    <script src="./js/add_task.js" defer></script>
+    <script src="./js/add_task_fields.js" defer></script>
+    <script src="./js/add_task_HTML.js" defer></script>
+    <script src="./js/register.js" defer></script>
+    <script src="./js/render_contact_card.js" defer></script>
+    <script src="./js/render_summary.js" defer></script>
+    <script src="./js/storage.js" defer></script>
+</head>
+
+<body onload="init();">
+    <a class="go-back" href="#" onclick="closeWindow(); return false;"><img src="./assets/img/arrow-left-line.svg" alt="back"></a>
+    <header id="uniquePrivacyOrLegal" w3-include-html="assets/templates/header_template.html"></header>
+    <aside id="sideMenu" w3-include-html="assets/templates/side_menu_template.html"></aside>
+    <div id="mobileMenuBox" w3-include-html="./assets/templates/mobile_side_menu.html"></div>
+    <div class="mainPrivacy">
+        <div class="headerPrivacy">
+            <h1 class="ft-general fs-61px fw-700">Legal Notice</h1>
+            
+        </div>
+        <h3>Imprint</h3>
+        <p>Daniel Schneider<br>
+            Sch&ouml;ne Aussicht 6<br>
+            65329 Hohenstein</p>
+        <h3>Kontakt</h3>
+        <p>Telefon: <a href="https://call.ctrlq.org/+4961209269386">06120 9269386</a>
+            <br>E-Mail: <a href="mailto:student@dsc-mail.de">student@dsc-mail.de</a></p>
+        <p>Quelle: <a href="https://www.e-recht24.de">https://www.e-recht24.de</a></p>
+    </div>
+</body>
+</html>
