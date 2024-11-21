@@ -1,17 +1,16 @@
-// Funktion, die beim Absenden des Formulars aufgerufen wird
+
 async function saveNewContact() {
-    // Erfassen der Eingabefelder
+
     const name = document.getElementById('contactName').value;
     const email = document.getElementById('contactMail').value;
     const phone = document.getElementById('contactNumber').value;
 
-    // Validierung der Eingabedaten
     if (!name || !email || !phone) {
         alert('Bitte füllen Sie alle Felder aus.');
         return;
     }
 
-    // Objekt erstellen, das an die Datenbank gesendet wird
+
     const newContact = {
         name: name,
         email: email,
@@ -19,7 +18,7 @@ async function saveNewContact() {
     };
 
     try {
-        // POST-Anfrage senden
+
         const response = await fetch(STORAGE_URL, {
             method: 'POST',
             headers: {
@@ -28,12 +27,12 @@ async function saveNewContact() {
             body: JSON.stringify(newContact) // JSON-Daten aus dem Objekt erstellen
         });
 
-        // Überprüfen, ob die Anfrage erfolgreich war
+
         if (response.ok) {
             const responseData = await response.json();
             console.log('Neuer Kontakt erfolgreich gespeichert:', responseData);
             alert('Kontakt wurde erfolgreich gespeichert!');
-            closeAddCardOne(); // Funktion zum Schließen des Formulars
+            closeAddCardOne(); 
         } else {
             const errorData = await response.json();
             console.error('Fehler beim Speichern des Kontakts:', errorData);
