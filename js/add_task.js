@@ -1,9 +1,48 @@
 const PRIOS = [null, 'urgent', 'medium', 'low'];
 
+
+
 let submitOnEnter = true;
 let currentTask = {};
 let message = 'Task added to board';
 // let tasks = [];
+
+async function addTaskToDatabase() {
+    const taskData = {
+        title: addTaskTitle.value,
+        description: addTaskDescription.value,
+        due_date: addTaskDue.value,
+        priority: PRIOS[getTaskPrioId()],
+        subtasks: currentTask['subtasks'] || ""
+    };
+
+    try {
+        const response = await fetch(`${STORAGE_URL}tasks/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(taskData)
+        });
+
+        if (response.ok) {
+            showToastMsg('Task added to board!');
+            const newTask = await response.json();
+            console.log("Task successfully added:", newTask);
+            resetTaskForm();
+            goToBoard();
+        } else {
+            const errorData = await response.json();
+            console.error("Error adding task:", errorData);
+            alert("Error: Unable to add task. Please try again.");
+        }
+    } catch (error) {
+        console.error("Network error:", error);
+        alert("Network error: Unable to connect to the server.");
+    }
+}
+
+
 
 /**
  * falls Add Task im Board geöffnet und Fenster auf 1-Spalten-Layout skaliert wird, Fenster schließen
@@ -236,6 +275,7 @@ function submitFormOnEnter(e) {
         if (addTaskForm && e.key == 'Enter') {
             unfocusAll();
             submitBtn.click();
+            addTaskToDatabase();
         }
         removeEventListener('keydown', submitFormOnEnter);
     }

@@ -1,18 +1,18 @@
-const STORAGE_URL = 'http://127.0.0.1:8000/contacts/';
+const STORAGE_URL = 'http://127.0.0.1:8000/api/';
 let contacts = [];
 
 async function loadContacts() {
-    let rsp = await fetch(STORAGE_URL);
+    let rsp = await fetch(STORAGE_URL+'contacts/');
     let rspJson = await rsp.json();
     console.log(rspJson)
 
-    contacts = [...rspJson];
+    contacts = rspJson;
     console.log(contacts);
 }
 
 async function deleteContact(contactId) {
     try {
-        const response = await fetch(`${STORAGE_URL}${contactId}/`, {
+        const response = await fetch(`${STORAGE_URL}contacts/${contactId}/`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json'
@@ -22,7 +22,6 @@ async function deleteContact(contactId) {
         if (response.ok) {
             console.log(`Contact with ID ${contactId} deleted successfully.`);
             await loadContacts(); // Kontakte neu laden
-            renderContacts(); // Kontakte neu rendern
         } else {
             const errorData = await response.json();
             console.error("Error deleting contact:", errorData);
@@ -38,7 +37,7 @@ async function deleteContact(contactId) {
  * This function initiate and loads the contact list
  */
 async function initContacts() {
-    // await init();
+    await init();
     await loadContacts();
     renderContacts();
 }
@@ -82,7 +81,7 @@ function renderContacts() {
  * @param {number} id - ID of the contact to edit
  */
 async function editContact(id) {
-    const response = await fetch(`${STORAGE_URL}${id}/`);
+    const response = await fetch(`${STORAGE_URL}contacts/${id}/`);
     if (!response.ok) {
         alert("Contact not found.");
         return;
@@ -90,12 +89,10 @@ async function editContact(id) {
 
     const contact = await response.json();
 
-    // Erstelle Eingabeaufforderungen für die Bearbeitung
     const newName = prompt("Enter new name:", contact.name);
     const newEmail = prompt("Enter new email:", contact.email);
     const newPhone = prompt("Enter new phone:", contact.phone);
 
-    // Aktualisierung durchführen
     try {
         const updatedContact = {
             name: newName || contact.name,
@@ -105,7 +102,6 @@ async function editContact(id) {
 
         await updateContact(id, updatedContact);
         await loadContacts(); // Kontakte neu laden
-        renderContacts(); // Kontakte neu rendern
         alert("Contact updated successfully.");
     } catch (error) {
         console.error("Error updating contact:", error);
@@ -120,7 +116,7 @@ async function editContact(id) {
  * @returns {Object} - The response from the API
  */
 async function addContact(value) {
-    let response = await fetch(STORAGE_URL, {
+    let response = await fetch(STORAGE_URL+'contacts/', {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -146,7 +142,7 @@ async function getAllContacts() {
  * @returns {Object} - The updated contact
  */
 async function updateContact(id, value) {
-    let response = await fetch(`${STORAGE_URL}${id}/`, {
+    let response = await fetch(`${STORAGE_URL}contacts/${id}/`, {
         method: "PUT",
         headers: {
             "Content-Type": "application/json",
@@ -154,4 +150,50 @@ async function updateContact(id, value) {
         body: JSON.stringify(value)
     });
     return await response.json();
+}
+
+
+async function saveNewContact() {
+
+    const name = document.getElementById('contactName').value;
+    const email = document.getElementById('contactMail').value;
+    const phone = document.getElementById('contactNumber').value;
+
+    if (!name || !email || !phone) {
+        alert('Bitte füllen Sie alle Felder aus.');
+        return;
+    }
+
+
+    const newContact = {
+        name: name,
+        email: email,
+        phone: phone
+    };
+
+    try {
+
+        const response = await fetch(STORAGE_URL+'contacts/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json' // JSON-Daten senden
+            },
+            body: JSON.stringify(newContact) // JSON-Daten aus dem Objekt erstellen
+        });
+
+
+        if (response.ok) {
+            const responseData = await response.json();
+            console.log('Neuer Kontakt erfolgreich gespeichert:', responseData);
+            alert('Kontakt wurde erfolgreich gespeichert!');
+            closeAddCardOne(); 
+        } else {
+            const errorData = await response.json();
+            console.error('Fehler beim Speichern des Kontakts:', errorData);
+            alert('Es ist ein Fehler aufgetreten. Überprüfen Sie die Eingaben.', errorData);
+        }
+    } catch (error) {
+        console.error('Netzwerkfehler:', error);
+        alert('Es konnte keine Verbindung zur API hergestellt werden.');
+    }
 }

@@ -2,6 +2,150 @@ let currentDraggedElement;
 let prevent = false; // dient zur Ermittlung, ob Add Task-Karte bei Klick geschlossen werden soll
 let filteredTasks = [];
 
+async function loadTasks() {
+    try {
+        const response = await fetch(`${STORAGE_URL}tasks/`);
+        if (!response.ok) {
+            throw new Error("Failed to fetch tasks from the backend");
+        }
+        const tasks = await response.json();
+        renderTasks(tasks);
+    } catch (error) {
+        console.error("Error loading tasks:", error);
+        alert("Unable to load tasks from the backend. Please try again later.");
+    }
+}
+
+async function deleteTask(taskId) {
+    if (!confirm("Are you sure you want to delete this task?")) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`${STORAGE_URL}tasks/${taskId}/`, {
+            method: 'DELETE',
+        });
+
+        if (response.ok) {
+            alert("Task deleted successfully");
+        } else {
+            alert("Error deleting task");
+        }
+    } catch (error) {
+        console.error("Error deleting task:", error);
+        alert("Network error. Please try again later.");
+    }
+}
+
+function renderTasks(tasks) {
+    const toDoContainer = document.getElementById("toDo");
+    toDoContainer.innerHTML = "";
+    tasks.forEach((task) => {
+        toDoContainer.innerHTML += `
+            <div class="task-card" draggable="true" ondragstart="drag(event)" id="task-${task.id}">
+                <h3>${task.title}</h3>
+                <p>${task.description}</p>
+                <p>Due: ${task.due_date}</p>
+                <p>Priority: <span class="${task.priority}">${task.priority}</span></p>
+                <p>Subtasks: ${task.subtasks}</p>
+                <button onclick="editTask(${task.id})">Edit</button>
+                <button onclick="deleteTask(${task.id})">Delete</button>
+            </div>
+        `;
+    });
+}
+
+async function editTask(taskId) {
+    try {
+        const response = await fetch(`${STORAGE_URL}tasks/${taskId}/`);
+        if (!response.ok) {
+            throw new Error("Failed to fetch task from the backend");
+        }
+
+        const task = await response.json();
+
+        const editFormHTML = `
+            <div class="edit-task-form">
+                <h3>Edit Task</h3>
+                <label for="editTitle">Title:</label>
+                <input type="text" id="editTitle" value="${task.title}" />
+
+                <label for="editDescription">Description:</label>
+                <textarea id="editDescription">${task.description}</textarea>
+
+                <label for="editDueDate">Due Date:</label>
+                <input type="date" id="editDueDate" value="${task.due_date}" />
+
+                <label for="editPriority">Priority:</label>
+                <select id="editPriority">
+                    <option value="urgent" ${task.priority === 'urgent' ? 'selected' : ''}>Urgent</option>
+                    <option value="medium" ${task.priority === 'medium' ? 'selected' : ''}>Medium</option>
+                    <option value="low" ${task.priority === 'low' ? 'selected' : ''}>Low</option>
+                </select>
+
+                <label for="editSubtasks">Subtasks:</label>
+                <input type="text" id="editSubtasks" value="${task.subtasks}" />
+
+                <button onclick="saveTask(${task.id})">Save</button>
+                <button onclick="cancelEdit()">Cancel</button>
+            </div>
+        `;
+
+        const editContainer = document.getElementById("toDo");
+        editContainer.innerHTML = editFormHTML;
+
+    } catch (error) {
+        console.error("Error fetching task:", error);
+        alert("Unable to load task. Please try again later.");
+    }
+}
+
+function saveTask(taskId) {
+    const updatedTask = {
+        title: document.getElementById("editTitle").value,
+        description: document.getElementById("editDescription").value,
+        due_date: document.getElementById("editDueDate").value,
+        priority: document.getElementById("editPriority").value,
+        subtasks: document.getElementById("editSubtasks").value,
+    };
+
+    fetch(`${STORAGE_URL}tasks/${taskId}/`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedTask),
+    })
+        .then(response => {
+            if (response.ok) {
+                alert("Task updated successfully");
+                loadTasks();
+            } else {
+                alert("Error updating task");
+            }
+        })
+        .catch(error => {
+            console.error("Error updating task:", error);
+            alert("Network error. Please try again later.");
+        });
+}
+
+function cancelEdit() {
+    loadTasks();
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    loadTasks();
+    let searchInput = document.getElementById('findTask');
+    searchInput.addEventListener("input", function () {
+        searchTask();
+    });
+});
+
+function cancelEdit() {
+    loadTasks();
+}
+
 
 /**
  *  Initializes Board Page
@@ -29,27 +173,6 @@ async function saveChanges() {
     // await setItem('tasks', JSON.stringify(tasks));
     await setItem('tasks', tasks);
     filteredTasks = tasks;
-}
-
-/**
- * Finds all tasks in "tasks"-Array with status = 'toDo' and calls functions to render these tasks
- */
-function updateToDo() {
-    let todo = filteredTasks.filter(t => t['status'] == 'toDo');
-    let status = 'to do';
-
-    document.getElementById('toDo').innerHTML = '';
-
-    if (todo.length == 0) {
-        document.getElementById('toDo').innerHTML = generateNoTask(status);
-    } else
-
-        for (let i = 0; i < todo.length; i++) {
-            const element = todo[i];
-            document.getElementById('toDo').innerHTML += generateTask(element);
-            generateSubtask(element);
-            renderBoardAssignedIcons(element);
-        }
 }
 
 /**

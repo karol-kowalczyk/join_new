@@ -1,49 +1,4 @@
 
-async function saveNewContact() {
-
-    const name = document.getElementById('contactName').value;
-    const email = document.getElementById('contactMail').value;
-    const phone = document.getElementById('contactNumber').value;
-
-    if (!name || !email || !phone) {
-        alert('Bitte füllen Sie alle Felder aus.');
-        return;
-    }
-
-
-    const newContact = {
-        name: name,
-        email: email,
-        phone: phone
-    };
-
-    try {
-
-        const response = await fetch(STORAGE_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json' // JSON-Daten senden
-            },
-            body: JSON.stringify(newContact) // JSON-Daten aus dem Objekt erstellen
-        });
-
-
-        if (response.ok) {
-            const responseData = await response.json();
-            console.log('Neuer Kontakt erfolgreich gespeichert:', responseData);
-            alert('Kontakt wurde erfolgreich gespeichert!');
-            closeAddCardOne(); 
-        } else {
-            const errorData = await response.json();
-            console.error('Fehler beim Speichern des Kontakts:', errorData);
-            alert('Es ist ein Fehler aufgetreten. Überprüfen Sie die Eingaben.', errorData);
-        }
-    } catch (error) {
-        console.error('Netzwerkfehler:', error);
-        alert('Es konnte keine Verbindung zur API hergestellt werden.');
-    }
-}
-
 /**
  * This function saves a new created contact and loads the contact into the remot storage
  */
