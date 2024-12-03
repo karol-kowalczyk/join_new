@@ -33,8 +33,8 @@ let userIconColor = [
 async function init() {
   await includeHTML();
   hideSideMenuBox();
-  await loadUsers();
-  await loadTasks();
+  // await loadUsers();
+  // await loadTasks();
   renderLogo();
   showActiveSite();
 }
@@ -222,11 +222,12 @@ function toggleCheckbox(checkbox) {
  * Renderfunction for the Username Logo in Header
  */
 function renderLogo() {
-  let loadedUserName = localStorage.getItem('userName');
+  let loadedUserName = localStorage.getItem('username');
   const nameParts = loadedUserName.split(' ');
   const capitalized = nameParts.map(part => part.charAt(0).toUpperCase()).join('');
   document.getElementById('use_name').innerHTML = capitalized;
 }
+
 
 
 /**
@@ -266,6 +267,7 @@ function logout() {
   localStorage.removeItem('token');
   localStorage.removeItem('userName');
   localStorage.removeItem('userId');
+  localStorage.removeItem('JOIN_TOKEN')
   window.location.href = 'index.html';
 }
 
@@ -273,21 +275,69 @@ function logout() {
 /**
  * Login function and go to summary page when login User and password are match
  */
-function login() {
-  let email = document.getElementById('email');
-  let password = document.getElementById('signUpPassword');
-  let user = users.find(u => u.email == email.value && u.password == password.value) || guests.find(u => u.email == email.value && u.password == password.value);
-  if (user) {
-    const token = generateToken(user);
-    localStorage.setItem("token", token);
-    window.setTimeout(function () {
-      redirectToSummaryPage(user);
-    }, 500);
+async function login() {
+  await loginUser()
+  // let email = document.getElementById('email');
+  // let password = document.getElementById('signUpPassword');
+  // let user = users.find(u => u.email == email.value && u.password == password.value) || guests.find(u => u.email == email.value && u.password == password.value);
+  // if (user) {
+  //   const token = generateToken(user);
+  //   localStorage.setItem("token", token);
+  //   window.setTimeout(function () {
+  //     redirectToSummaryPage(user);
+  //   }, 500);
+  // } else {
+  //   document.getElementById('userNotFound').style.display = 'block';
+  // }
+}
+async function loginUser() {
+  let email = document.getElementById('email').value;
+  let password = document.getElementById('signUpPassword').value;
+  const loginData = {
+    email: email,
+    password: password
+  };
+
+  // Ändere den URL-Pfad, falls nötig, um deine DRF-Login-View zu treffen
+  const response = await fetch('http://127.0.0.1:8000/api/authentication/login/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(loginData)
+  });
+
+  if (response.ok) {
+    const data = await response.json();
+    const token = data.token;  // Das Token vom Backend
+    const username = data.username;  // Der Benutzername vom Backend
+
+    console.log('Token:', token);
+    console.log('Username:', username);
+
+    // Token wird hier weitergegeben, aber du kannst auch das lokale Token-Generieren beibehalten,
+    // falls es zusätzliche Logik dazu braucht
+    const tokenPayload = {
+      userId: username,  // Hier könnte es auch die Benutzer-ID oder andere Identifikatoren sein
+      exp: Date.now() / 1000 + 43200  // Beispiel: Ablaufzeit in 12 Stunden
+    };
+    const generatedToken = btoa(JSON.stringify(tokenPayload));
+    localStorage.setItem("token", token)  // Optional: Eigener Token basierend auf Backend-Daten
+    localStorage.setItem("JOIN_TOKEN", generatedToken);
+    console.log(generatedToken);
+    // Token speichern (dies könnte auch das vom Backend sein)
+    localStorage.setItem("username", username);  // Benutzername speichern
+    user = username;
+
+    // Optional: Nach dem Login weiterleiten oder eine andere Aktion ausführen
+    redirectToSummaryPage(user);
+
   } else {
-    document.getElementById('userNotFound').style.display = 'block';
+    const errorData = await response.json();
+    console.error('Login failed:', errorData);
+    document.getElementById('userNotFound').style.display = 'block';  // Zeigt Fehlermeldung, wenn Login fehlgeschlagen ist
   }
 }
-
 
 /**
  * Go to summary Page after successfull login
@@ -295,7 +345,7 @@ function login() {
  */
 function redirectToSummaryPage(user) {
   localStorage.setItem('userName', user.name);
-  localStorage.setItem('userId', users.indexOf(user));
+  localStorage.setItem('userId', user.indexOf(user));
   window.location.href = "summary.html";
 }
 
@@ -343,10 +393,11 @@ document.addEventListener("DOMContentLoaded", function () {
   const excludedPages = ["legal.html", "privacy.html", "signup.html"];
   const currentUrl = window.location.href;
   if (currentUrl.indexOf("index.html") === -1 && !excludedPages.some(page => currentUrl.includes(page))) {
-      let token = localStorage.getItem("token");
-      if (!token || !verifyToken(token)) {
-          window.location.href = "index.html";
-      }
+    let token = localStorage.getItem("JOIN_TOKEN");
+    console.log(token);
+    if (!token || !verifyToken(token)) {
+      window.location.href = "index.html";
+    }
   }
 });
 
@@ -407,5 +458,5 @@ function hideSideMenuBox() {
 
 
 function closeWindow() {
-    close();
+  close();
 }

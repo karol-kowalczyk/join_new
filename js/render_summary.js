@@ -16,6 +16,22 @@ async function initSummary() {
     renderDoneTasks();
     renderUrgentTasks();
     renderUrgentDeadline();
+    await fetchTaskCount();
+}
+
+
+async function fetchTaskCount() {
+    try {
+        const response = await fetch('http://127.0.0.1:8000/api/tasks/count');
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+       console.log(data.task_count);
+       document.getElementById('toDoDashboard').innerHTML = data.task_count;
+    } catch (error) {
+        console.error('Daten konnten nicht aus dem Backend geladen werden!', error);
+    }
 }
 
 
@@ -26,8 +42,8 @@ document.addEventListener('DOMContentLoaded', function () {
     if (window.location.pathname.endsWith('/summary.html')) {
         document.body.style.display = 'block';
         const isFromIndexPage = document.referrer.endsWith('/index.html');
-        const isFromMainDomain = window.location.href.startsWith(uploadedDomain) || window.location.href.startsWith(uploadedSecureDomain);
-        if (isFromIndexPage || isFromMainDomain) {
+        // const isFromMainDomain = window.location.href.startsWith(uploadedDomain) || window.location.href.startsWith(uploadedSecureDomain);
+        if (isFromIndexPage ) {
             document.getElementById('mobileGreetingContainer').classList.remove('dNone');
             document.getElementById('summaryBody').classList.add('dNone');
             setTimeout(function () {
@@ -78,11 +94,14 @@ function fillInGuest() {
 }
 
 
+
+
 /**
  * Renderfunction for the Username at summary dashboard.
  */
 function renderUserName() {
-    let loadedUserName = localStorage.getItem('userName');
+    let loadedUserName = localStorage.getItem('username');
+    console.log(loadedUserName);
     if (loadedUserName === 'Guest') {
     } else {
         let renderUserName = document.getElementById('userNameSummary');

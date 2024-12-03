@@ -55,6 +55,14 @@ function renderTasks(tasks) {
     });
 }
 
+function countTasks() {
+    const toDoContainer = document.getElementById("toDo");
+    console.log(toDoContainer.getElementsByClassName("task-card").length);
+    return toDoContainer.getElementsByClassName("task-card").length;
+
+}
+
+
 async function editTask(taskId) {
     try {
         const response = await fetch(`${STORAGE_URL}tasks/${taskId}/`);
@@ -145,6 +153,10 @@ document.addEventListener("DOMContentLoaded", function () {
 function cancelEdit() {
     loadTasks();
 }
+
+
+
+
 
 
 /**

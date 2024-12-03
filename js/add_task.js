@@ -16,11 +16,21 @@ async function addTaskToDatabase() {
         subtasks: currentTask['subtasks'] || ""
     };
 
+    // Holen des Tokens aus dem localStorage
+    const token = localStorage.getItem('token');  // Der Schlüssel 'token' sollte dem entsprechen, was du verwendest
+    console.log(token);
+    // Überprüfen, ob das Token vorhanden ist
+    if (!token) {
+        alert("Fehler: Kein Authentifizierungstoken gefunden.");
+        return;
+    }
+
     try {
         const response = await fetch(`${STORAGE_URL}tasks/`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`  // Token im Header übergeben
             },
             body: JSON.stringify(taskData)
         });

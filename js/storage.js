@@ -4,10 +4,10 @@ let contacts = [];
 async function loadContacts() {
     let rsp = await fetch(STORAGE_URL+'contacts/');
     let rspJson = await rsp.json();
+
     console.log(rspJson)
 
     contacts = rspJson;
-    console.log(contacts);
 }
 
 async function deleteContact(contactId) {

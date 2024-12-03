@@ -14,26 +14,26 @@ let guests = [
  * init function
  */
 async function initRegister() {
-    await loadUsers();
+    // await loadContacts();
 }
 
 
-/**
- * This is the function to load the Data from the remot storage and convert it into a JSON Array
- * If there are no Data we get an error log into the console
- */
-async function loadUsers() {
-    try {
-        const result = await getItem('users');
-        if (result && typeof result === "object") {
-            users = Object.values(result);
-        } else {
-            users = [];
-        }
-    } catch (e) {
-        console.error('Loading error:', e);
-    }
-}
+// /**
+//  * This is the function to load the Data from the remot storage and convert it into a JSON Array
+//  * If there are no Data we get an error log into the console
+//  */
+// async function loadUsers() {
+//     try {
+//         const result = await getItem('users');
+//         if (result && typeof result === "object") {
+//             users = Object.values(result);
+//         } else {
+//             users = [];
+//         }
+//     } catch (e) {
+//         console.error('Loading error:', e);
+//     }
+// }
 
 
 /**
@@ -44,32 +44,90 @@ async function loadUsers() {
 function setInitialsAtRegistration() {
     let loadedUserName = signUpName.value;
     return getInitials(loadedUserName);
-  }
+}
 
 
-  function getInitials(name) {
+function getInitials(name) {
     const nameParts = name.split(' ');
     const capitalized = nameParts.map(part => part.charAt(0).toUpperCase()).join('');
     return capitalized;
-  }
+}
 
 
-/**
- * With this function we disable the button after click and push the Data into the users Array and POST it over the setItem() into the remote storage
- */
 async function register() {
     registerBtn.disabled = true;
+
+    // Überprüfen, ob die E-Mail bereits registriert ist (kann auch über das Backend gemacht werden)
     const isEmailRegistered = users.some(u => u.email === signUpEmail.value);
     if (isEmailRegistered) {
         document.getElementById('errorMessageId').innerHTML = 'This Email was registered soon!'
     } else {
-        collectDataForRegistration();
-        await clearUsers();
-        await setItem('users', users);
-        resetForm();
-        showOverlaySignedUp();
+        // Registrierung bei Backend anstoßen
+        await sendRegistrationData();
+
     }
 }
+
+async function sendRegistrationData() {
+    const fullName = signUpName.value;  // Der Benutzername mit Vorname und Nachname
+    
+    // Splitte den eingegebenen Namen in Vorname und Nachname
+    const nameParts = fullName.split(' ');
+    const firstName = nameParts[0];  // Vorname
+    const lastName = nameParts[1] || '';  // Nachname (kann leer sein)
+
+    const formData = {
+        username: fullName,  // Der gesamte Name wird als Benutzername gesendet
+        email: signUpEmail.value,
+        password: signUpPassword.value,
+        repeated_password: signUpPasswordConfirm.value,
+        first_name: firstName,  // Vorname wird separat gesendet
+        last_name: lastName     // Nachname wird separat gesendet
+    };
+
+    const response = await fetch('http://127.0.0.1:8000/api/authentication/registration/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+    });
+
+    if (response.ok) {
+
+        showOverlaySignedUp();
+        resetForm();
+        const data = await response.json();
+        console.log(data);
+        // Token speichern
+        localStorage.setItem('token', data.token);
+        resetForm();
+
+        // alert('Registrierung erfolgreich!');
+    } else {
+        const errorData = await response.json();
+        alert('Fehler: ' + errorData.error);
+    }
+}
+
+
+
+/**
+ * With this function we disable the button after click and push the Data into the users Array and POST it over the setItem() into the remote storage
+//  */
+// async function register() {
+//     registerBtn.disabled = true;
+//     const isEmailRegistered = users.some(u => u.email === signUpEmail.value);
+//     if (isEmailRegistered) {
+//         document.getElementById('errorMessageId').innerHTML = 'This Email was registered soon!'
+//     } else {
+//         collectDataForRegistration();
+//         await clearUsers();
+//         await setItem('users', users);
+//         resetForm();
+//         showOverlaySignedUp();
+//     }
+// }
 
 
 /**
@@ -83,7 +141,7 @@ function collectDataForRegistration() {
         email: signUpEmail.value,
         password: signUpPassword.value,
         initials: setInitialsAtRegistration(),
-        color: getRandomUserIconColor() 
+        color: getRandomUserIconColor()
     });
 }
 
@@ -109,9 +167,8 @@ function showOverlaySignedUp() {
  * This function open the index.html after 2000ms after the successfull registration
  */
 function goToLogin() {
-    window.setTimeout(function () {
         window.location.href = "index.html";
-    }, 2000);
+
 }
 
 
